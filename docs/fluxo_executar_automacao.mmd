@@ -1,0 +1,48 @@
+---
+title: Processo executar_automacao
+---
+%%{init: {
+  "theme": "base",
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 30,
+    "rankSpacing": 38,
+    "htmlLabels": true
+  },
+  "themeVariables": {
+    "fontFamily": "Arial, sans-serif",
+    "fontSize": "15px",
+    "lineColor": "#64748B"
+  }
+}}%%
+
+flowchart TB
+  E0(["AUTOMATION ANYWHERE<br/>Inicia executar_automacao"])
+  E1["AUTOMATION ANYWHERE<br/>Recebe o payload JSON completo"]
+  E2["AUTOMATION ANYWHERE<br/>Chama executar_automacao.py"]
+  E3["Valida o payload técnico<br/>e a automação permitida"]
+  ED1{"Payload<br/>válido?"}
+  E4["Extrai e repassa<br/>somente parametros"]
+  E5["Inicia main.py<br/>no venv preparado"]
+  E6["Automação valida os parâmetros<br/>funcionais e executa as etapas"]
+  E7["Executor aguarda<br/>o término"]
+  ED2{"Código de<br/>saída = 0?"}
+  EOK(["AUTOMATION ANYWHERE<br/>Recebe resposta JSON<br/>e código 0"])
+  EF1(["AUTOMATION ANYWHERE<br/>Recebe FALHA DE INICIALIZAÇÃO"])
+  EF2(["AUTOMATION ANYWHERE<br/>Recebe falha na execução<br/>e código diferente de 0"])
+
+  E0 --> E1 --> E2 --> E3 --> ED1
+  ED1 -- "Não" --> EF1
+  ED1 -- "Sim" --> E4 --> E5 --> E6 --> E7 --> ED2
+  ED2 -- "Sim" --> EOK
+  ED2 -- "Não" --> EF2
+
+  classDef aa fill:#D6E9FF,stroke:#1565C0,color:#0B2E59,stroke-width:3px,font-weight:bold;
+  classDef process fill:#F1F5F9,stroke:#64748B,color:#1E293B,stroke-width:1.75px;
+  classDef success fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px;
+  classDef failure fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D,stroke-width:2px;
+
+  class E0,E1,E2 aa;
+  class E3,ED1,E4,E5,E6,E7,ED2 process;
+  class EOK success;
+  class EF1,EF2 failure;

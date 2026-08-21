@@ -1,0 +1,89 @@
+---
+title: Fluxo Alternativo - Bootstrap Único
+---
+%%{init: {
+  "theme": "base",
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 34,
+    "rankSpacing": 44,
+    "htmlLabels": true
+  },
+  "themeVariables": {
+    "fontFamily": "Arial, sans-serif",
+    "fontSize": "15px",
+    "lineColor": "#64748B"
+  }
+}}%%
+
+flowchart TB
+  subgraph FLUXO["FLUXO PRINCIPAL"]
+    direction LR
+
+  subgraph PREP["1. INICIALIZAÇÃO E PREPARAÇÃO"]
+    direction TB
+    A0(["AUTOMATION ANYWHERE<br/>Seleciona a máquina"])
+    A1["AUTOMATION ANYWHERE<br/>Chama bootstrap.py<br/><small>Entrada: payload JSON completo</small>"]
+    B0["Bootstrap recebe<br/>o payload JSON"]
+    D0{"Marcador de<br/>reinício presente?"}
+    B1["Registra o<br/>commit atual"]
+    B2["Atualiza o repositório<br/><small>git pull --ff-only</small>"]
+    D1{"Atualização<br/>concluída?"}
+    D2{"Commit<br/>mudou?"}
+    B3["Reinicia o bootstrap<br/>com a versão atualizada<br/><small>Mantém payload + marcador interno</small>"]
+    B4["Valida o payload técnico<br/>e a automação permitida"]
+    D3{"Payload<br/>válido?"}
+    B5["Resolve internamente<br/>a automação solicitada"]
+    D4{"Repositório atualizado<br/>ou venv inexistente?"}
+    B6["Cria/reutiliza o venv<br/>e sincroniza requirements.txt"]
+    B7["Reutiliza o<br/>ambiente existente"]
+    D5{"Ambiente<br/>preparado?"}
+    PF(["FALHA DE INICIALIZAÇÃO"])
+    POK["Ambiente pronto"]
+
+    A0 --> A1 --> B0 --> D0
+    D0 -- "Não" --> B1 --> B2 --> D1
+    D1 -- "Não" --> PF
+    D1 -- "Sim" --> D2
+    D2 -- "Sim" --> B3
+    B3 -- "Novo processo" --> B0
+    D2 -- "Não" --> B4
+    D0 -- "Sim" --> B4
+    B4 --> D3
+    D3 -- "Não" --> PF
+    D3 -- "Sim" --> B5 --> D4
+    D4 -- "Sim" --> B6 --> D5
+    D4 -- "Não" --> B7 --> D5
+    D5 -- "Não" --> PF
+    D5 -- "Sim" --> POK
+  end
+
+  subgraph EXEC["2. EXECUÇÃO E RETORNO"]
+    direction TB
+    E0["Bootstrap extrai e repassa<br/>somente parametros"]
+    E1["Inicia main.py<br/>no venv preparado"]
+    E2["Automação valida os parâmetros<br/>funcionais e executa as etapas"]
+    E3["Bootstrap aguarda<br/>o término"]
+    D6{"Código de<br/>saída = 0?"}
+    OK(["AUTOMATION ANYWHERE<br/>Recebe resposta JSON<br/>e código 0"])
+    EF(["AUTOMATION ANYWHERE<br/>Recebe erro<br/>e código diferente de 0"])
+
+    E0 --> E1 --> E2 --> E3 --> D6
+    D6 -- "Sim" --> OK
+    D6 -- "Não" --> EF
+  end
+
+  POK --> E0
+  end
+
+  classDef aa fill:#D6E9FF,stroke:#1565C0,color:#0B2E59,stroke-width:3px,font-weight:bold;
+  classDef process fill:#F1F5F9,stroke:#64748B,color:#1E293B,stroke-width:1.75px;
+  classDef success fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px;
+  classDef failure fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D,stroke-width:2px;
+
+  class A0,A1 aa;
+  class B0,D0,B1,B2,D1,D2,B3,B4,D3,B5,D4,B6,B7,D5,POK,E0,E1,E2,E3,D6 process;
+  class OK success;
+  class PF,EF failure;
+
+  style FLUXO fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1px;

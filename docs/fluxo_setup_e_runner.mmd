@@ -1,0 +1,79 @@
+---
+title: Fluxo de Execução das Automações Python
+---
+%%{init: {
+  "theme": "base",
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 34,
+    "rankSpacing": 44,
+    "htmlLabels": true
+  },
+  "themeVariables": {
+    "fontFamily": "Arial, sans-serif",
+    "fontSize": "15px",
+    "lineColor": "#64748B"
+  }
+}}%%
+
+flowchart TB
+  subgraph FLUXO["FLUXO PRINCIPAL"]
+    direction LR
+
+  subgraph PREP["1. PREPARAÇÃO DO AMBIENTE"]
+    direction TB
+    P0(["AUTOMATION ANYWHERE<br/>Seleciona a máquina"])
+    P1["AUTOMATION ANYWHERE<br/>Chama preparar_ambiente.py<br/><small>Entrada: automacao + execucao_id</small>"]
+    P2["Atualiza o repositório<br/><small>git pull --ff-only</small>"]
+    D1{"Atualização<br/>concluída?"}
+    D2{"Commit mudou ou<br/>o venv não existe?"}
+    P3["Criar/reutilizar o venv<br/>e sincronizar requirements.txt"]
+    P4["Reutilizar o<br/>ambiente existente"]
+    D3{"Ambiente<br/>preparado?"}
+    PF(["FALHA DE INICIALIZAÇÃO"])
+    POK["Preparação concluída"]
+
+    P0 --> P1 --> P2 --> D1
+    D1 -- "Não" --> PF
+    D1 -- "Sim" --> D2
+    D2 -- "Sim" --> P3 --> D3
+    D2 -- "Não" --> P4 --> D3
+    D3 -- "Não" --> PF
+    D3 -- "Sim" --> POK
+  end
+
+  subgraph EXEC["2. EXECUÇÃO DA AUTOMAÇÃO"]
+    direction TB
+    E0["AUTOMATION ANYWHERE<br/>Chama executar_automacao.py<br/><small>Entrada: payload JSON completo</small>"]
+    E1["Valida o contrato técnico<br/>e a automação permitida"]
+    D4{"Entrada<br/>válida?"}
+    E2["Extrai e repassa<br/>somente parametros"]
+    E3["Inicia main.py<br/>no venv preparado"]
+    E4["Automação valida os parâmetros<br/>funcionais e executa as etapas"]
+    E5["Executor aguarda<br/>o término"]
+    D5{"Código de<br/>saída = 0?"}
+    EF1(["FALHA DE INICIALIZAÇÃO"])
+    OK(["Resposta de sucesso<br/>para o Automation Anywhere"])
+    EF2(["Falha na execução<br/>para o Automation Anywhere"])
+
+    E0 --> E1 --> D4
+    D4 -- "Não" --> EF1
+    D4 -- "Sim" --> E2 --> E3 --> E4 --> E5 --> D5
+    D5 -- "Sim" --> OK
+    D5 -- "Não" --> EF2
+  end
+
+  POK --> E0
+  end
+
+  classDef aa fill:#D6E9FF,stroke:#1565C0,color:#0B2E59,stroke-width:3px,font-weight:bold;
+  classDef process fill:#F1F5F9,stroke:#64748B,color:#1E293B,stroke-width:1.75px;
+  classDef success fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px;
+  classDef failure fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D,stroke-width:2px;
+
+  class P0,P1,E0 aa;
+  class P2,D1,D2,P3,P4,D3,POK,E1,D4,E2,E3,E4,E5,D5 process;
+  class OK success;
+  class PF,EF1,EF2 failure;
+
+  style FLUXO fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1px;

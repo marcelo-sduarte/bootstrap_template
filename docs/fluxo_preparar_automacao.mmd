@@ -1,0 +1,48 @@
+---
+title: Processo preparar_automacao
+---
+%%{init: {
+  "theme": "base",
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 30,
+    "rankSpacing": 38,
+    "htmlLabels": true
+  },
+  "themeVariables": {
+    "fontFamily": "Arial, sans-serif",
+    "fontSize": "15px",
+    "lineColor": "#64748B"
+  }
+}}%%
+
+flowchart TB
+  P0(["AUTOMATION ANYWHERE<br/>Inicia preparar_automacao"])
+  P1["AUTOMATION ANYWHERE<br/>Define automacao + execucao_id"]
+  P2["AUTOMATION ANYWHERE<br/>Chama preparar_ambiente.py"]
+  P3["Atualiza o repositório<br/><small>git pull --ff-only</small>"]
+  PD1{"Atualização<br/>concluída?"}
+  PD2{"Commit mudou ou<br/>o venv não existe?"}
+  P4["Cria/reutiliza o venv<br/>e sincroniza requirements.txt"]
+  P5["Reutiliza o<br/>ambiente existente"]
+  PD3{"Ambiente<br/>preparado?"}
+  POK(["AUTOMATION ANYWHERE<br/>Recebe sucesso da preparação"])
+  PF(["AUTOMATION ANYWHERE<br/>Recebe FALHA DE INICIALIZAÇÃO"])
+
+  P0 --> P1 --> P2 --> P3 --> PD1
+  PD1 -- "Não" --> PF
+  PD1 -- "Sim" --> PD2
+  PD2 -- "Sim" --> P4 --> PD3
+  PD2 -- "Não" --> P5 --> PD3
+  PD3 -- "Sim" --> POK
+  PD3 -- "Não" --> PF
+
+  classDef aa fill:#D6E9FF,stroke:#1565C0,color:#0B2E59,stroke-width:3px,font-weight:bold;
+  classDef process fill:#F1F5F9,stroke:#64748B,color:#1E293B,stroke-width:1.75px;
+  classDef success fill:#DCFCE7,stroke:#16A34A,color:#14532D,stroke-width:2px;
+  classDef failure fill:#FEE2E2,stroke:#DC2626,color:#7F1D1D,stroke-width:2px;
+
+  class P0,P1,P2 aa;
+  class P3,PD1,PD2,P4,P5,PD3 process;
+  class POK success;
+  class PF failure;
