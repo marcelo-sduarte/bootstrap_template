@@ -300,8 +300,9 @@ def executar(params: str) -> str:
 
         if rodarBot:
             resposta_texto = rodar_bot(nome_bot, ambiente, parametros)
+            resposta_texto = resposta_texto.splitlines()
             try:
-                resposta = json.loads(resposta_texto)
+                resposta = json.loads(resposta_texto[-1])
             except json.JSONDecodeError as erro:
                 raise RuntimeError(
                     f"Bot '{nome_bot}' retornou um JSON invalido no stdout."
@@ -332,7 +333,7 @@ def executar(params: str) -> str:
 if __name__ == "__main__":
     # Teste local: python bootstrap.py Ambiente, Nome do robo Ex: "DEV,R01_HYPERA"
     #parametro = '{"ambiente": "DEV", "nomebot": "R01", "executar_bot": "False", "caminho_repositorio": "https://dev.azure.com/hypera/Repositorio_Automacoes_Python/_git/DEV"}'
-    #parametro = '{"ambiente": "DEV", "nomebot": "EcoBot", "executar_bot": "False", "caminho_repositorio": "https://dev.azure.com/hypera/Repositorio_Automacoes_Python/_git/Repositorio_Automacoes_Python/automacoes/eco_bot"}'
-    parametro = '{"ambiente": "DEV", "nomebot": "AutomacoesHypera", "executar_bot": "False", "caminho_repositorio": "https://dev.azure.com/hypera/Repositorio_Automacoes_Python/_git/Repositorio_Automacoes_Python/automacoes/"}'
+    parametro = '{"ambiente": "DEV", "nomebot": "EcoBot", "executar_bot": "True", "caminho_repositorio": "https://dev.azure.com/hypera/Repositorio_Automacoes_Python/_git/Repositorio_Automacoes_Python/automacoes/eco_bot"}'
+    # parametro = '{"ambiente": "DEV", "nomebot": "AutomacoesHypera", "executar_bot": "False", "caminho_repositorio": "https://dev.azure.com/hypera/Repositorio_Automacoes_Python/_git/Repositorio_Automacoes_Python/automacoes/"}'
     resposta = executar(parametro)
     print(f"Bootstrap finalizado com status: {resposta}")
